@@ -88,11 +88,7 @@
 %% =============================================================================
 
 load_nif() ->
-    Dir = case code:priv_dir(encurses) of
-        {error, bad_name} ->
-            filename:dirname(code:which(?MODULE)) ++ "/../priv";
-        OtherDir -> OtherDir
-    end,
+    Dir = "priv",
     erlang:load_nif(Dir ++ "/encurses", 0).
 
 %% =============================================================================
