@@ -37,8 +37,9 @@ defmodule Exncurses do
   ## =============================================================================
 
   def load_nif do
-    dir = 'priv'
-    :erlang.load_nif(dir ++ '/encurses', 0)
+    path = Path.dirname(Mix.Project.deps_path) <> "/priv/exncurses"
+    :ok = :erlang.load_nif(path, 0)
+    #{:error, path}
   end
 
   ## =============================================================================
@@ -102,6 +103,184 @@ defmodule Exncurses do
   is_integer(y) and is_integer(char) do
     e_mvwaddch(win, x, y, char)
   end
+
+  ## addstr
+
+  def addstr string  when is_list(string) do
+    str = :lists.flatten string
+    e_add(:erlang.iolist_size str, str)
+  end
+
+  def waddstr(win, string) when is_integer(win) and is_list(string) do
+    str = :lists.flatten(string)
+    e_waddstr(win, :erlang.iolist_size(str), str)
+  end
+
+  def mvaddstr(x, y, string) when is_integer(x) and is_integer(y) and
+  is_list(string) do
+    str = :lists.flatten(string)
+    e_mvaddstr(x, y, :erlang.iolist_size(str), str)
+  end
+
+  def mvwaddstr(win, x, y, string) when is_integer(win) and is_integer(x) and
+  is_integer(y) and is_list(string) do
+    str = :lists.flatten(string)
+    e_mvwaddstr(win, x, y, :erlang.iolist_size(str), str)
+  end
+
+  ## move
+
+  def move(x, y) when is_integer(x) and is_integer(y), do: e_move(x, y)
+
+  def move(win, x, y) when is_integer(win) and is_integer(x) and
+  is_integer(y) do
+    e_wmove(win, x, y)
+  end
+
+  ## get x and y
+
+def getxy, do: e_getxy()
+
+def getxy win when is_integer win do
+    e_wgetxy win
+end
+
+def getmaxxy, do: e_getmaxxy
+
+def getmaxxy win when is_integer win do
+    e_wgetmaxxy win
+end
+
+ ## curs_set
+
+def curs_set flag when is_integer flag do
+    e_curs_set flag
+end
+
+ ## has_colors
+
+def has_colors, do: e_has_colors
+
+ ##  start_color
+
+start_color() ->
+    e_start_color().
+
+%% init_pair
+
+init_pair(N, FColor, BColor) when is_integer(N) andalso is_integer(FColor)
+        andalso is_integer(BColor) ->
+    e_init_pair(N, FColor, BColor).
+
+%% attron/attroff
+
+attron(Mask) when is_integer(Mask) ->
+    e_attron(Mask).
+
+attron(Win, Mask) when is_integer(Win) andalso is_integer(Mask) ->
+    e_wattron(Win, Mask).
+
+attroff(Mask) when is_integer(Mask) ->
+    e_attroff(Mask).
+
+attroff(Win, Mask) when is_integer(Win) andalso is_integer(Mask) ->
+    e_wattroff(Win, Mask).
+
+%% nl/nonl
+
+nl() ->
+    e_nl().
+
+nonl() ->
+    e_nonl().
+
+%% scrollok
+
+scrollok(Win, Flag) when is_integer(Win) andalso is_boolean(Flag) ->
+    case Flag of
+        true -> e_scrollok(Win, 1);
+        false -> e_scrollok(Win, 0)
+    end.
+
+%% hline/vline
+
+hline(Char, MaxN) when is_integer(Char) andalso is_integer(MaxN) ->
+    e_hline(Char, MaxN).
+
+hline(Win, Char, MaxN) when is_integer(Win) andalso is_integer(Char)
+        andalso is_integer(MaxN) ->
+    e_whline(Win, Char, MaxN).
+
+vline(Char, MaxN) when is_integer(Char) andalso is_integer(MaxN) ->
+    e_vline(Char, MaxN).
+
+vline(Win, Char, MaxN) when is_integer(Win) andalso is_integer(Char)
+        andalso is_integer(MaxN) ->
+    e_wvline(Win, Char, MaxN).
+
+%% border
+
+border(Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs)
+  when is_integer(Ls) andalso is_integer(Rs) andalso
+        is_integer(Ts) andalso is_integer(Bs) andalso is_integer(TLs) andalso
+        is_integer(TRs) andalso is_integer(BLs) andalso is_integer(BRs) ->
+    e_border(Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs).
+
+border(Win, Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs)
+  when is_integer(Win) andalso is_integer(Ls) andalso
+        is_integer(Rs) andalso is_integer(Ts) andalso is_integer(Bs) andalso
+        is_integer(TLs) andalso is_integer(TRs) andalso is_integer(BLs) andalso
+        is_integer(BRs) ->
+    e_wborder(Win, Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs).
+
+%% box
+
+box(Win, Horz, Vert) when is_integer(Win) andalso is_integer(Horz) andalso
+        is_integer(Vert) ->
+    e_box(Win, Horz, Vert).
+
+%% keypad
+
+keypad(Flag) when is_boolean(Flag) ->
+    keypad(0, Flag).
+
+keypad(Win, Flag) when is_integer(Win) and is_boolean(Flag) ->
+    case Flag of
+        true -> e_keypad(Win, 1);
+        false -> e_keypad(Win, 0)
+    end.
+
+%% getch
+
+getch() ->
+    getch(0).
+
+getch(Win) ->
+    e_wgetch(self(), Win),
+    receive
+        Char -> Char
+    end.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   ## =============================================================================
   ## Internal functions

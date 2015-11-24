@@ -32,7 +32,7 @@
 #include <signal.h>
 #include <ncurses.h>
 #include "erl_nif.h"
-#include "encurses.h"
+#include "exncurses.h"
 
 static ErlNifMutex* g_lock = NULL;
 
@@ -1016,4 +1016,4 @@ static ErlNifFunc nif_funcs[] =
     {"e_wgetch", 2, e_wgetch},
 };
 
-ERL_NIF_INIT(encurses, nif_funcs, load, NULL, NULL, unload)
+ERL_NIF_INIT(Elixir.Exncurses, nif_funcs, load, NULL, NULL, unload)
