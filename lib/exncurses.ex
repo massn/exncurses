@@ -106,9 +106,9 @@ defmodule Exncurses do
 
   ## addstr
 
-  def addstr string  when is_list(string) do
+  def addstr(string)  when is_list(string) do
     str = :lists.flatten string
-    e_add(:erlang.iolist_size str, str)
+    e_addstr(:erlang.iolist_size(str), str)
   end
 
   def waddstr(win, string) when is_integer(win) and is_list(string) do
@@ -139,148 +139,135 @@ defmodule Exncurses do
 
   ## get x and y
 
-def getxy, do: e_getxy()
+  def getxy, do: e_getxy()
 
-def getxy win when is_integer win do
+  def getxy(win) when is_integer win do
     e_wgetxy win
-end
+  end
 
-def getmaxxy, do: e_getmaxxy
+  def getmaxxy, do: e_getmaxxy
 
-def getmaxxy win when is_integer win do
+  def getmaxxy(win) when is_integer win do
     e_wgetmaxxy win
-end
+  end
 
- ## curs_set
+  ## curs_set
 
-def curs_set flag when is_integer flag do
+  def curs_set(flag) when is_integer flag do
     e_curs_set flag
-end
+  end
 
- ## has_colors
+  ## has_colors
 
-def has_colors, do: e_has_colors
+  def has_colors, do: e_has_colors
 
- ##  start_color
+  ##  start_color
 
-start_color() ->
-    e_start_color().
+  def start_color, do: e_start_color
 
-%% init_pair
+  ## init_pair
 
-init_pair(N, FColor, BColor) when is_integer(N) andalso is_integer(FColor)
-        andalso is_integer(BColor) ->
-    e_init_pair(N, FColor, BColor).
+  def init_pair(n, f_color, b_color) when is_integer(n) and is_integer(f_color)
+  and is_integer(b_color) do
+    e_init_pair(n, f_color, b_color)
+  end
 
-%% attron/attroff
+  ## attron/attroff
 
-attron(Mask) when is_integer(Mask) ->
-    e_attron(Mask).
+  def attron(mask) when is_integer(mask), do: e_attron(mask)
 
-attron(Win, Mask) when is_integer(Win) andalso is_integer(Mask) ->
-    e_wattron(Win, Mask).
+  def attron(win, mask) when is_integer(win) and is_integer(mask) do
+    e_wattron(win, mask)
+  end
 
-attroff(Mask) when is_integer(Mask) ->
-    e_attroff(Mask).
+  def attroff(mask) when is_integer(mask), do: e_attroff(mask)
 
-attroff(Win, Mask) when is_integer(Win) andalso is_integer(Mask) ->
-    e_wattroff(Win, Mask).
+  def attroff(win, mask) when is_integer(win) and is_integer(mask) do
+    e_wattroff(win, mask)
+  end
 
-%% nl/nonl
+  ## nl/nonl
 
-nl() ->
-    e_nl().
+  def nl, do: e_nl
 
-nonl() ->
-    e_nonl().
+  def nonl, do: e_nonl
 
-%% scrollok
+  ## scrollok
 
-scrollok(Win, Flag) when is_integer(Win) andalso is_boolean(Flag) ->
-    case Flag of
-        true -> e_scrollok(Win, 1);
-        false -> e_scrollok(Win, 0)
-    end.
+  def scrollok(win, flag) when is_integer(win) and is_boolean(flag) do
+    case flag do
+      :true -> e_scrollok(win, 1);
+      :false -> e_scrollok(win, 0)
+    end
+  end
 
-%% hline/vline
+  ## hline/vline
 
-hline(Char, MaxN) when is_integer(Char) andalso is_integer(MaxN) ->
-    e_hline(Char, MaxN).
+  def hline(char, max_n) when is_integer(char) and is_integer(max_n) do
+    e_hline(char, max_n)
+  end
 
-hline(Win, Char, MaxN) when is_integer(Win) andalso is_integer(Char)
-        andalso is_integer(MaxN) ->
-    e_whline(Win, Char, MaxN).
+  def hline(win, char, max_n) when is_integer(win) and is_integer(char)
+  and is_integer(max_n) do
+    e_whline(win, char, max_n)
+  end
 
-vline(Char, MaxN) when is_integer(Char) andalso is_integer(MaxN) ->
-    e_vline(Char, MaxN).
+  def vline(char, max_n) when is_integer(char) and is_integer(max_n) do
+    e_vline(char, max_n)
+  end
 
-vline(Win, Char, MaxN) when is_integer(Win) andalso is_integer(Char)
-        andalso is_integer(MaxN) ->
-    e_wvline(Win, Char, MaxN).
+  def vline(win, char, max_n) when is_integer(win) and is_integer(char)
+  and is_integer(max_n) do
+    e_wvline(win, char, max_n)
+  end
 
-%% border
+  ## border
 
-border(Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs)
-  when is_integer(Ls) andalso is_integer(Rs) andalso
-        is_integer(Ts) andalso is_integer(Bs) andalso is_integer(TLs) andalso
-        is_integer(TRs) andalso is_integer(BLs) andalso is_integer(BRs) ->
-    e_border(Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs).
+  def border(ls, rs, ts, bs, tls, trs, bls, brs)
+  when is_integer(ls) and is_integer(rs) and
+  is_integer(ts) and is_integer(bs) and is_integer(tls) and
+  is_integer(trs) and is_integer(bls) and is_integer(brs) do
+    e_border(ls, rs, ts, bs, tls, trs, bls, brs)
+  end
 
-border(Win, Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs)
-  when is_integer(Win) andalso is_integer(Ls) andalso
-        is_integer(Rs) andalso is_integer(Ts) andalso is_integer(Bs) andalso
-        is_integer(TLs) andalso is_integer(TRs) andalso is_integer(BLs) andalso
-        is_integer(BRs) ->
-    e_wborder(Win, Ls, Rs, Ts, Bs, TLs, TRs, BLs, BRs).
+  def border(win, ls, rs, ts, bs, tls, trs, bls, brs)
+  when is_integer(win) and is_integer(ls) and
+  is_integer(rs) and is_integer(ts) and is_integer(bs) and
+  is_integer(tls) and is_integer(trs) and is_integer(bls) and
+  is_integer(brs) do
+    e_wborder(win, ls, rs, ts, bs, tls, trs, bls, brs)
+  end
 
-%% box
+  ## box
 
-box(Win, Horz, Vert) when is_integer(Win) andalso is_integer(Horz) andalso
-        is_integer(Vert) ->
-    e_box(Win, Horz, Vert).
+  def box(win, horz, vert) when is_integer(win) and is_integer(horz) and
+  is_integer(vert) do
+    e_box(win, horz, vert)
+  end
 
-%% keypad
+  ## keypad
 
-keypad(Flag) when is_boolean(Flag) ->
-    keypad(0, Flag).
+  def keypad(flag) when is_boolean(flag) do
+    keypad(0, flag)
+  end
 
-keypad(Win, Flag) when is_integer(Win) and is_boolean(Flag) ->
-    case Flag of
-        true -> e_keypad(Win, 1);
-        false -> e_keypad(Win, 0)
-    end.
+  def keypad(win, flag) when is_integer(win) and is_boolean(flag) do
+    case flag do
+      :true -> e_keypad(win, 1);
+      :false -> e_keypad(win, 0)
+    end
+  end
 
-%% getch
+  ## getch
 
-getch() ->
-    getch(0).
+  def getch, do: getch(0)
 
-getch(Win) ->
-    e_wgetch(self(), Win),
-    receive
-        Char -> Char
-    end.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  def getch(win) do
+    e_wgetch(self(), win)
+    receive do
+      char -> char
+    end
+  end
 
   ## =============================================================================
   ## Internal functions
@@ -317,6 +304,70 @@ getch(Win) ->
   defp e_mvaddch(_x, _y, _char), do: :not_initialized
 
   defp e_mvwaddch(_win, _x, _y, _char), do: :not_initialized
+
+  defp e_addstr(_str_len, _string), do: :not_initialized
+
+  defp e_waddstr(_win, _str_len, _string), do: :not_initialized
+
+  defp e_mvaddstr(_x, _y, _str_len, _string), do: :not_initialized
+
+  defp e_mvwaddstr(_win, _x, _y, _str_len, _string), do: :not_initialized
+
+  defp e_move(_x, _y), do: :not_initialized
+
+  defp e_wmove(_win, _x, _y), do: :not_initialized
+
+  defp e_getxy, do: :not_initialized
+
+  defp e_wgetxy(_win), do: :not_initialized
+
+  defp e_getmaxxy, do: :not_initialized
+
+  defp e_wgetmaxxy(_win), do: :not_initialized
+
+  defp e_curs_set(_flag), do: :not_initialized
+
+  defp e_has_colors, do: :not_initialized
+
+  defp e_start_color, do: :not_initialized
+
+  defp e_init_pair(_n, _f_color, _b_color), do: :not_initialized
+
+  defp e_attron(_mask), do: :not_initialized
+
+  defp e_wattron(_win, _mask), do: :not_initialized
+
+  defp e_attroff(_mask), do: :not_initialized
+
+  defp e_wattroff(_win, _mask), do: :not_initialized
+
+  defp e_nl, do: :not_initialized
+
+  defp e_nonl, do: :not_initialized
+
+  defp e_scrollok(_win, _flag), do: :not_initialized
+
+  defp e_hline(_char, _max_n), do: :not_initialized
+
+  defp e_whline(_win, _char, _max_n), do: :not_initialized
+
+  defp e_vline(_char, _max_n), do: :not_initialized
+
+  defp e_wvline(_win, _char, _max_n), do: :not_initialized
+
+  defp e_border(_ls, _rs, _ts, _bs, _tls, _trs, _bls, _brs) do
+    :not_initialized
+  end
+
+  defp e_wborder(_win, _ls, _rs, _ts, _bs, _tls, _trs, _bls, _brs) do
+    :not_initialized
+  end
+
+  defp e_box(_win, _horz, _vert), do: :not_initialized
+
+  defp e_keypad(_win, _flag), do: :not_initialized
+
+  defp e_wgetch(_pid, _win), do: :not_initialized
 
 end
 
