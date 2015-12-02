@@ -29,7 +29,9 @@ defmodule Exncurses.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [
+      {:quaff, git: "https://github.com/qhool/quaff.git", branch: "master"}
+    ]
   end
 end
 
