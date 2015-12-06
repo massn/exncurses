@@ -28,7 +28,7 @@
 
 defmodule Exncurses.Demo do
   require Quaff.Constants
-  Quaff.Constants.include_lib("encurses.hrl")
+  Quaff.Constants.include_lib("exncurses/include/encurses.hrl")
 
   def go do
     Exncurses.initscr
@@ -42,102 +42,110 @@ defmodule Exncurses.Demo do
     strLen = length(str)
     timer = :erlang.start_timer(10000, :main, :times_up)
 
-    :spawn(__module__, :keyloop, [])
-    :spawn(__module__, :other_win, [])
-    :spawn(__module__, :bounce_text, [str, strLen, 0, 0, 1, 1])
-    :spawn(__module__, :bounce_timer, [timer, div(mx, 2), div(my, 2), -1, 1])
-    :register(:main, self)
+    :erlang.spawn(__MODULE__, :keyloop, [])
+    :erlang.spawn(__MODULE__, :other_win, [])
+    :erlang.spawn(__MODULE__, :bounce_text, [str, strLen, 0, 0, 1, 1])
+    :erlang.spawn(__MODULE__, :bounce_timer, [timer, div(mx, 2), div(my, 2), -1, 1])
+    :erlang.register(:main, self)
     receive do
-        {:timeout, timer, :times_up} ->
-            Exncurses.erase
-            Exncurses.refresh
-            Exncurses.endwin
+      {:timeout, ^timer, :times_up} ->
+        Exncurses.erase
+        Exncurses.refresh
+        Exncurses.endwin
     end
+  end
 
-bounce_timer(Timer, PrevX, PrevY, DirX, DirY) ->
-    Str = io_lib:format("~p", [erlang:read_timer(Timer)]),
-    Exncurses.move(PrevX, PrevY),
-    Exncurses.hline($\s, 4),
-    {NewX, NewY, NewDirX, NewDirY} = calc_new_pos(4, PrevX, PrevY, DirX, DirY),
-    Exncurses.mvaddstr(NewX, NewY, Str),
-    Exncurses.refresh(),
-    timer:sleep(20),
-    bounce_timer(Timer, NewX, NewY, NewDirX, NewDirY).
+  def bounce_timer(timer, prev_x, prev_y, dir_x, dir_y) do
+    str = :io_lib.format('~p', [:erlang.read_timer(timer)])
+    Exncurses.move(prev_x, prev_y)
+    Exncurses.hline(?\a, 4)
+    {new_x, new_y, new_dir_x, new_dir_y} = calc_new_pos(4, prev_x, prev_y, dir_x, dir_y)
+    Exncurses.mvaddstr(new_x, new_y, str)
+    Exncurses.refresh
+    :timer.sleep(20)
+    bounce_timer(timer, new_x, new_y, new_dir_x, new_dir_y)
+  end
 
-bounce_text(Str, StrLen, PrevX, PrevY, DirX, DirY) ->
-    Exncurses.move(PrevX, PrevY),
-    Exncurses.hline($\s, length(Str)),
-    {NewX, NewY, NewDirX, NewDirY} = calc_new_pos(StrLen, PrevX, PrevY, DirX, DirY),
-    Exncurses.mvaddstr(NewX, NewY, Str),
-    Exncurses.refresh(),
-    timer:sleep(100),
-    bounce_text(Str, StrLen, NewX, NewY, NewDirX, NewDirY).
+  def bounce_text(str, str_len, prev_x, prev_y, dir_x, dir_y) do
+    Exncurses.move(prev_x, prev_y)
+    Exncurses.hline(?\s, length(str))
+    {new_x, new_y, new_dir_x, new_dir_y} = calc_new_pos(str_len, prev_x, prev_y, dir_x, dir_y)
+    Exncurses.mvaddstr(new_x, new_y, str)
+    Exncurses.refresh
+    :timer.sleep(100)
+    bounce_text(str, str_len, new_x, new_y, new_dir_x, new_dir_y)
+  end
 
-calc_new_pos(Len, Px, Py, Dx, Dy) ->
-    {Mx, My} = Exncurses.getmaxxy(),
-    {NewPy, NewDy} =
-    if 
-        (Py+(Dy) >= My) orelse (Py+(Dy) < 0) ->
-            {Py+(Dy*-1), Dy*-1};
-        true ->
-            {Py+(Dy), Dy}
-    end,
-    {NewPx, NewDx} =
-    if 
-        (Px+(Dx)+Len >= Mx) orelse (Px+(Dx) < 0) ->
-            {Px+(Dx*-1), Dx*-1};
-        true ->
-            {Px+(Dx), Dx}
-    end,
-    {NewPx, NewPy, NewDx, NewDy}.
+  def calc_new_pos(len, px, py, dx, dy) do
+    {mx, my} = Exncurses.getmaxxy
+    {new_py, new_dy} =
+    if (py + (dy) >= my) or (py + (dy) < 0) do
+      {py + (dy * -1), dy * -1}
+    else
+      {py + (dy), dy}
+    end
+    {new_px, new_dx} =
+    if (px + (dx) + len >= mx) or (px + (dx) < 0) do
+      {px + (dx * -1), dx * -1}
+    else
+      {px + (dx), dx}
+    end
+    {new_px, new_py, new_dx, new_dy}
+  end
 
+  def other_win do
+    win = Exncurses.newwin(5, 5, 5, 5)
+    Exncurses.border(win, ?|, ?|, ?-, ?-, ?+, ?+, ?+, ?+)
+    Exncurses.mvwaddstr(win, 1, 1, 'sup')
+    Exncurses.mvwaddstr(win, 1, 2, 'sup')
+    Exncurses.mvwaddstr(win, 1, 3, 'sup')
+    Exncurses.refresh(win)
+    :timer.sleep(100)
+    other_win(win)
+  end
 
-other_win() ->
-    Win = Exncurses.newwin(5,5,5,5),
-    Exncurses.border(Win, $|, $|, $-, $-, $+, $+, $+, $+),
-    Exncurses.mvwaddstr(Win, 1, 1, "sup"),
-    Exncurses.mvwaddstr(Win, 1, 2, "sup"),
-    Exncurses.mvwaddstr(Win, 1, 3, "sup"),
-    Exncurses.refresh(Win),
-    timer:sleep(100),
-    other_win(Win).
+  def other_win(win) do
+    Exncurses.delwin(win)
+    other_win
+  end
 
-other_win(Win) ->
-    Exncurses.delwin(Win),
-    other_win().
+  def refresh(win) do
+    Exncurses.refresh(win)
+    :timer.sleep(100)
+    refresh(win)
+  end
 
-refresh(Win) ->
-    Exncurses.refresh(Win),
-    timer:sleep(100),
-    refresh(Win).
+  def keyloop do
+    Exncurses.noecho
+    ch = Exncurses.getch
+    Exncurses.mvaddstr(10, 10, '        ')
+    Exncurses.mvaddstr(10, 10, :io_lib.format('~p', [parse_direction(ch)]))
+    keyloop
+  end
 
-keyloop() ->
-    Exncurses.noecho(),
-    Ch = Exncurses.getch(),
-    Exncurses.mvaddstr(10,10,"        "),
-    Exncurses.mvaddstr(10,10,io_lib:format("~p",[parse_direction(Ch)])),
-    keyloop().
+  def parse_direction(char) do
+    case char do
+      262 -> :kp_nw
+      ?7 -> :kp_nw
+      259 -> :kp_n
+      ?8 -> :kp_nx
+      339 -> :kp_ne
+      ?9 -> :kp_ne
+      260 -> :kp_w
+      ?4 -> :kp_w
+      350 -> :kp_center
+      ?5 -> :kp_center
+      261 -> :kp_e
+      ?6 -> :kp_e
+      360 -> :kp_sw
+      ?1 -> :kp_sw
+      258 -> :kp_s
+      ?2 -> :kp_s
+      338 -> :kp_se
+      ?3 -> :kp_se
+      other -> other
+    end
+  end
+end
 
-parse_direction(Char) ->
-    case Char of
-        262 -> kp_nw;
-        $7 -> kp_nw;
-        259 -> kp_n;
-        $8 -> kp_n;
-        339 -> kp_ne;
-        $9 -> kp_ne;
-        260 -> kp_w;
-        $4 -> kp_w;
-        350 -> kp_center;
-        $5 -> kp_center;
-        261 -> kp_e;
-        $6 -> kp_e;
-        360 -> kp_sw;
-        $1 -> kp_sw;
-        258 -> kp_s;
-        $2 -> kp_s;
-        338 -> kp_se;
-        $3 -> kp_se;
-        Other -> Other
-    end.
 

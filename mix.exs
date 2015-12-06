@@ -5,7 +5,7 @@ defmodule Exncurses.Mixfile do
     [app: :exncurses,
      version: "0.0.1",
      elixir: "~> 1.1",
-     compilers: [:make, :elixir, :app],
+     # compilers: [:make, :elixir, :app],
      escript: [main_module: Main],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -39,14 +39,14 @@ end
 # Make file tasks
 #########################################
 
-defmodule Mix.Tasks.Compile.Make do
-  @shortdoc "Compiles c codes in c_src"
-
-  def run _ do
-    {result, _error_code} = System.cmd("make", [], stderr_to_stdout: true)
-    Mix.shell.info result
-    :ok
-  end
-end
-
-
+# defmodule Mix.Tasks.Compile.Make do
+#   @shortdoc "Compiles c codes in c_src"
+#
+#   def run _ do
+#     {result, _error_code} = System.cmd("make", [], stderr_to_stdout: true)
+#     Mix.shell.info result
+#     :ok
+#   end
+# end
+#
+#
